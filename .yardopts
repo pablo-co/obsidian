@@ -1,0 +1,7 @@
+--readme README.md
+--title 'Obsidian Documentation'
+--charset utf-8
+--markup markdown
+--private
+--protected
+'lib/**/*.rb' - '*.md' - 'doc/*.md'

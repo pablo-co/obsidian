@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/obsidian'
+require_relative '../lib/obsidian/init'
+require_relative '../lib/obsidian/manager'
+require_relative '../lib/obsidian/round_robin_scheduler'
+
+manager = Obsidian::Manager.new(scheduler: Obsidian::RoundRobinScheduler.new)
+init = Init.new(manager)
+error = nil
+
+loop do
+  warn error unless error.nil?
+  error = nil
+
+  print init.prompt
+
+  begin
+    line = $stdin.gets.chomp
+    command = line.split(' ').shift
+    args = line.split(' ').drop(1)
+  rescue NoMethodError, Interrupt
+    exit
+  end
+
+  exit(1) if line =~ /^(exit|quit)$/
+
+  unless command && init.respond_to?(command)
+    error = 'Invalid command'
+    next
+  end
+
+  begin
+    init.send(command, *args)
+  rescue Exception => e
+    error = e.message
+  end
+end
