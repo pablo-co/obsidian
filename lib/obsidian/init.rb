@@ -66,6 +66,14 @@ class Obsidian::Init
     manager.time = time
   end
 
+  # Sets the amount of time a write to an output device
+  # will take.
+  # @param delay [#to_i] the delay in milliseconds
+  # @return [nil]
+  def set_output_delay(delay)
+    manager.output_delay = delay.to_i
+  end
+
   # Sets whether the scheduler should automatically schedule tasks
   # as they are inserted into the ready queue.
   # @param automatic [String] the boolean value for the setting. Anything other than 'true' is considered false
