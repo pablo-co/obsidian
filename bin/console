@@ -6,7 +6,7 @@ require_relative '../lib/obsidian/manager'
 require_relative '../lib/obsidian/round_robin_scheduler'
 
 manager = Obsidian::Manager.new(scheduler: Obsidian::RoundRobinScheduler.new)
-init = Init.new(manager)
+init = Obsidian::Init.new(manager)
 error = nil
 
 loop do

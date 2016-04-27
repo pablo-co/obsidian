@@ -11,7 +11,7 @@ require_relative 'priority_sjf_scheduler'
 # looking to interact with the simulated OS. It makes use of
 # {Obsidian::Manager} to manage tasks and settings.
 # @see Obsidian::Manager
-class Init
+class Obsidian::Init
   # @return [Manager] the manager to submit task and actions to
   # @see Obsidian::Manager
   attr_accessor :manager
