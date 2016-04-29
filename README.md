@@ -37,6 +37,7 @@ obsidian >> |
 ### Using the CLI
 
 You can run many commands on the CLI with the following format: `command argument1 argument2 ...`. To see all valid commands and their usage run `help`.
+
 ```
 obsidian >> help
 Usage: command argument1 argument2 ...
@@ -44,6 +45,7 @@ Options:
   help                                   Display this message
   load_task_from_file [file]             Load a task from a given YAML file
   load_task_from_std_in                  Load a task from standard input
+  load_module [file]                     Load a Ruby file into memory
   remove_task [pid]                      Remove a task from the ready queue
   get_task_stats [pid]                   List all information of a task
   set_scheduler [scheduler class]        Sets the scheduling algorithm
@@ -53,6 +55,11 @@ Options:
   step                                   Run the scheduler and dispatcher once
   steps [times]                          Run the scheduler and dispatcher n times
   queues                                 Prints the contents of all queues
+  set_memory_strategy [strategy class]   Sets the memory strategy algorithm
+  process_memory_trace [input] [output]  Processes a memory trace and outputs the result to a file
+
+Bug reports, suggestions, updates:
+https://github.com/pablo-co/obsidian/issues
 ```
 
 #### Load a task
@@ -177,6 +184,73 @@ obsidian >> step
 Run the scheduler and dispatcher `n` times.
 ```
 obsidian >> steps n
+```
+
+#### Change the memory management strategy
+
+You can change the memory management strategy used when processing memory
+traces.
+
+```
+obsidian >> set_memory_strategy Obisidian::Memory::FirstFitStrategy
+```
+
+There are 3 built-in strategies:
+* Obsidian::Memory::FirstFitStrategy
+* Obsidian::Memory::BestFitStrategy
+* Obsidian::Memory::WorstFitStrategy
+
+##### Write your own memory management strategy
+
+To write your own strategy all you have to do is write a class that is a
+subclass of `Obsidian::Memory::Strategy` and that implements
+`next_space_available`. See any of the built-in strategies for reference.
+
+You first have to load your custom strategy to memory:
+```
+obsidian >> load_module your_custom_strategy.rb
+```
+
+And then you just set it as the current memory strategy:
+```
+obsidian >> set_memory_strategy YourCustomStrategy
+```
+
+#### Simulate a memory trace
+
+You can simulate the memory management process with a memory trace file. This
+file has the following format:
+```
+size_of_memory
+number_of_available_spaces
+starting_address_1, available_space_1
+starting_address_2,  available_space_2 
+...
+starting_address_N, available_space_N
+number_of_processes
+pid, arrival_time, duration, size_of_memory
+pid, arrival_time, duration, size_of_memory
+...
+pid, arrival_time, duration, size_of_memory
+```
+
+See `examples/memory_trace.txt` for an example memory trace.
+
+To simulate the memory trace:
+```
+obsidian >> process_memory_trace examples/memory_trace.txt output.txt
+```
+
+This will parse the memory trace in the first file and output the result of
+doing memory management with the tasks and memory state given to the output file.
+
+The output given by the example command:
+```
+Algorithm: FirstFitStrategy
+Assigned processes: 1, 200, 115; 2, 600, 500; 3, 1100, 358; 4, 1458, 200; 5, 1658, 375
+Blocked processes: 
+Memory utilization: 1548 / 4000 = 38.7%
+Blocking probability: 5 / 0 = 0.0%
 ```
 
 ## Writing your own programs
