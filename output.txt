@@ -1,0 +1,5 @@
+Algorithm: WorstFitStrategy
+Assigned processes: 1, 2500, 115; 2, 2615, 500; 3, 3115, 358; 4, 3473, 200; 5, 3673, 375
+Blocked processes: 
+Memory utilization: 1548 / 4000 = 38.7%
+Blocking probability: 5 / 0 = 0.0%

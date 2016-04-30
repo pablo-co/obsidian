@@ -4,9 +4,13 @@ require_relative '../lib/obsidian'
 require_relative '../lib/obsidian/init'
 require_relative '../lib/obsidian/manager'
 require_relative '../lib/obsidian/round_robin_scheduler'
+require_relative '../lib/obsidian/memory/simulator'
+require_relative '../lib/obsidian/memory/first_fit_strategy'
 
 manager = Obsidian::Manager.new(scheduler: Obsidian::RoundRobinScheduler.new)
-init = Obsidian::Init.new(manager)
+strategy = Obsidian::Memory::FirstFitStrategy.new
+simulator = Obsidian::Memory::Simulator.new(strategy)
+init = Obsidian::Init.new(manager, simulator)
 error = nil
 
 loop do

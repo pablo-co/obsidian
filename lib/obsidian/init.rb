@@ -5,7 +5,12 @@ require_relative 'pcb'
 require_relative 'scheduler'
 require_relative 'sjf_scheduler'
 require_relative 'priority_sjf_scheduler'
-
+require_relative 'memory/parser'
+require_relative 'memory/strategy'
+require_relative 'memory/first_fit_strategy'
+require_relative 'memory/best_fit_strategy'
+require_relative 'memory/worst_fit_strategy'
+require_relative 'memory/writer'
 
 # Init is the entry class which serves as the API to any client
 # looking to interact with the simulated OS. It makes use of
@@ -16,8 +21,13 @@ class Obsidian::Init
   # @see Obsidian::Manager
   attr_accessor :manager
 
-  def initialize(manager)
+  # @return [MemoryStrategy] the memory strategy that will process
+  #    memory files
+  attr_accessor :simulator
+
+  def initialize(manager, simulator)
     self.manager = manager
+    self.simulator = simulator
   end
 
   # Loads a PCB from a given file and adds it to the manager's
@@ -124,6 +134,47 @@ class Obsidian::Init
     puts manager.display_queues
   end
 
+  # Changes the memory strategy that will be used to process
+  # memory execution files.
+  # @param strategy [String] the class name of the strategy, should subclass
+  #   {Obsidian::MemoryStrategy}
+  # @return [nil]
+  def set_memory_strategy(strategy)
+    begin
+      strategy_cls = Object.const_get(strategy)
+      raise Exception unless strategy_cls < Obsidian::Memory::Strategy
+      simulator.strategy = strategy_cls.new
+    rescue Exception
+      puts "#{strategy} is not a valid memory strategy"
+    end
+  end
+
+  # Processes a memory trace from a given file using the
+  # current memory strategy set. And output the result to
+  # and output file.
+  # @param input_file [String] the memory trace
+  # @param output_file [String] the output file
+  # @return [nil]
+  def process_memory_trace(input_file, output_file)
+    parser = Obsidian::Memory::Parser.new
+    trace = parser.parse(input_file)
+    simulator.process_trace(trace)
+    writer = Obsidian::Memory::Writer.new(
+      strategy: simulator.strategy,
+      tasks: simulator.tasks,
+      blocked_tasks: simulator.blocked_tasks,
+      mem_size: trace.mem_size
+    )
+    writer.write(output_file)
+  end
+
+  # Requires a given ruby file in the current context.
+  # @param file [String] the file to require
+  # @return [nil]
+  def load_module(file)
+    require_relative file
+  end
+
   # The text that should be shown to the user on the CLI
   # @return [String] the prompt to show to the user
   def prompt
@@ -140,6 +191,7 @@ Options:
   help                                   Display this message
   load_task_from_file [file]             Load a task from a given YAML file
   load_task_from_std_in                  Load a task from standard input
+  load_module [file]                     Load a Ruby file into memory
   remove_task [pid]                      Remove a task from the ready queue
   get_task_stats [pid]                   List all information of a task
   set_scheduler [scheduler class]        Sets the scheduling algorithm
@@ -149,6 +201,8 @@ Options:
   step                                   Run the scheduler and dispatcher once
   steps [times]                          Run the scheduler and dispatcher n times
   queues                                 Prints the contents of all queues
+  set_memory_strategy [strategy class]   Sets the memory strategy algorithm
+  process_memory_trace [input] [output]  Processes a memory trace and outputs the result to a file
 
 Bug reports, suggestions, updates:
 https://github.com/pablo-co/obsidian/issues
